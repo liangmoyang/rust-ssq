@@ -1,36 +1,36 @@
 use std::{
+    fs::OpenOptions,
     io::{self, Write},
     process,
 };
 
-use rand::Rng;
-
 use chrono::prelude::*;
 use digest::Digest;
+use rand::Rng;
 use sha2::Sha512;
 
 fn main() {
     let mut select_mod_input = String::new();
 
-    io::stdout().flush().expect("刷新失败"); // 刷新
+    io::stdout().flush().expect("Flush Fail"); // 刷新
 
     println!("请选择你的幸运模式：");
     println!("1. 纯天命");
     println!("2. 今天必中");
-
-    io::stdin()
-        .read_line(&mut select_mod_input)
-        .expect("获取输入失败");
-
     println!("============================================================");
+
+    io::stdin().read_line(&mut select_mod_input).expect("获取输入失败");
+
+    let mut red: Vec<i32>;
+    let mut blue: i32 = 0;
 
     // 注意：输入的字符串带了\n，所以要trim
     match select_mod_input.as_str().trim() {
         "1" => {
-            use_rand();
+            (red, blue) = use_rand();
         }
         "2" => {
-            date_hash();
+            (red, blue) = date_hash();
         }
         _ => {
             println!("没有诚心！回车键退出");
@@ -39,6 +39,17 @@ fn main() {
         }
     }
 
+    if red.len() < 6 || blue == 0 {
+        println!("今天不宜！！！回车键退出");
+        process::exit(0);
+    }
+
+    red.sort();
+    println!("红色球：{:?}", red);
+    println!("蓝色球：{}", blue);
+
+    write_run_log(&select_mod_input.trim(), red, blue).expect("写入日志失败");
+
     println!("回车键退出");
     io::stdin().read_line(&mut String::new()).expect("退出");
 }
@@ -46,7 +57,7 @@ fn main() {
 /**
  * 纯随机数的方式
  */
-fn use_rand() {
+fn use_rand() -> (Vec<i32>, i32) {
     let mut rng: rand::prelude::ThreadRng = rand::thread_rng();
 
     // 红色球
@@ -62,11 +73,11 @@ fn use_rand() {
     }
 
     red_vec.sort();
-    println!("红色球：{:?}", red_vec);
 
     // 蓝色球
     let blue_num: i32 = rng.gen_range(1..=16);
-    println!("蓝色球：{:?}", blue_num);
+
+    return (red_vec, blue_num);
 }
 
 fn rand_number(vec1: &mut Vec<i32>) {
@@ -87,15 +98,15 @@ fn rand_number(vec1: &mut Vec<i32>) {
 /**
  * 用日期做hash得出固定数
  */
-fn date_hash() {
+fn date_hash() -> (Vec<i32>, i32) {
     let date = Local::now().date_naive();
     println!("{}，今天的幸运数字是：", date);
 
-    let condidate = hash_string_sha512(date.format("%Y-%m-%d").to_string().as_str());
+    let candidate = hash_string_sha512(date.format("%Y-%m-%d").to_string().as_str());
 
     let mut red: Vec<i32> = Vec::new();
     let mut blue: i32 = 0;
-    for item in &condidate {
+    for item in &candidate {
         if blue != 0 {
             break;
         }
@@ -110,14 +121,7 @@ fn date_hash() {
         }
     }
 
-    if red.len() < 6 || blue == 0 {
-        println!("今天不宜！！！");
-    } else {
-        red.sort();
-        println!("红色球：{:?}", red);
-
-        println!("蓝色球：{}", blue);
-    }
+    return (red, blue);
 }
 
 fn hash_string_sha512(s: &str) -> Vec<u8> {
@@ -125,4 +129,27 @@ fn hash_string_sha512(s: &str) -> Vec<u8> {
 
     hasher.update(s.as_bytes());
     hasher.finalize().to_vec()
+}
+
+// ******************************************************************************************************
+
+fn write_run_log(select_mod: &str, red: Vec<i32>, blue: i32) -> Result<(), std::io::Error> {
+    let content = format!(
+        "{} 运算结果: \t选择模式【{}】 红色球{:?} 蓝色球[{}]\n",
+        Local::now().format("%Y-%m-%d %H:%M:%S"),
+        select_mod,
+        red,
+        blue
+    );
+
+    let mut obj: OpenOptions = OpenOptions::new();
+    let options = obj.write(true).create(true).append(true);
+
+    let mut file = options.open("log.txt")?;
+
+    file.write_all(content.as_bytes())?;
+
+    file.sync_all()?;
+
+    Ok(())
 }
