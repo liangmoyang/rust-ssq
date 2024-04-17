@@ -1,4 +1,3 @@
-
 use std::{
     fs::OpenOptions,
     io::{self, Write},
@@ -6,13 +5,9 @@ use std::{
 };
 
 use chrono::prelude::*;
-use digest::Digest;
-use rand::Rng;
-
-use crate::mode::mode::rand::use_rand;
-use crate::mode::mode::hash::date_hash;
 
 mod mode;
+use mode::hash::date_hash;
 
 fn main() {
 
@@ -33,7 +28,7 @@ fn main() {
     // 注意：输入的字符串带了\n，所以要trim
     match select_mod_input.as_str().trim() {
         "1" => {
-            (red, blue) = use_rand();
+            (red, blue) =  mode::rand::use_rand();
         }
         "2" => {
             (red, blue) = date_hash();
