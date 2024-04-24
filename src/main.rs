@@ -42,6 +42,7 @@ fn main() {
 
     if red.len() < 6 || blue == 0 {
         println!("今天不宜！！！回车键退出");
+        io::stdin().read_line(&mut String::new()).expect("退出");
         process::exit(0);
     }
 
