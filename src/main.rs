@@ -6,8 +6,10 @@ use std::{
 
 use chrono::prelude::*;
 
-mod mode;
-use mode::hash::date_hash;
+mod lotto;
+mod service;
+
+use service::mode::union_lotto;
 
 fn main() {
 
@@ -28,10 +30,10 @@ fn main() {
     // 注意：输入的字符串带了\n，所以要trim
     match select_mod_input.as_str().trim() {
         "1" => {
-            (red, blue) =  mode::rand::use_rand();
+            (red, blue) =  union_lotto::use_rand();
         }
         "2" => {
-            (red, blue) = date_hash();
+            (red, blue) = union_lotto::date_hash();
         }
         _ => {
             println!("没有诚心！回车键退出");
