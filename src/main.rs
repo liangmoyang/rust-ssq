@@ -6,7 +6,6 @@ use std::{
 
 use chrono::prelude::*;
 
-mod lotto;
 mod service;
 
 use service::mode::union_lotto;
