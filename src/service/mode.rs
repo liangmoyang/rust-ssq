@@ -88,12 +88,12 @@ pub mod grand_lotto {
                 break;
             }
 
-            if red.len() < 6 && item >= &1 && item <= &35 {
+            if red.len() < 6 && *item >= 1 && *item <= 35 {
                 if red.contains(&(*item as i32)) {
                     continue;
                 }
                 red.push(*item as i32);
-            } else if item >= &1 && item <= &12 {
+            } else if *item >= 1 && *item <= 12 {
                 if blue.contains(&(*item as i32)) {
                     continue;
                 }
